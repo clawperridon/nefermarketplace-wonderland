@@ -2,143 +2,131 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="min-h-screen" style={{ background: '#FDF6F0' }}>
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center" style={{ background: 'rgba(253,246,240,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(212,175,55,0.1)' }}>
-        <Link href="/" className="font-display text-xl font-bold tracking-[0.25em]" style={{ color: '#1E3A5F', fontFamily: 'Syne, sans-serif' }}>NEFER</Link>
-        <div className="hidden md:flex items-center gap-8">
-          <Link href="/marketplace" className="text-xs tracking-[0.15em] uppercase" style={{ color: '#1E3A5F', opacity: 0.7 }}>Shop</Link>
-          <Link href="/brands" className="text-xs tracking-[0.15em] uppercase" style={{ color: '#1E3A5F', opacity: 0.7 }}>Brands</Link>
-          <Link href="/collections" className="text-xs tracking-[0.15em] uppercase" style={{ color: '#1E3A5F', opacity: 0.7 }}>Collections</Link>
-          <Link href="/brand/onboarding" className="text-xs tracking-[0.15em] uppercase" style={{ color: '#D4AF37' }}>For Sellers</Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/saved" className="text-xs" style={{ color: '#1E3A5F' }}>Saved</Link>
-          <Link href="/checkout" className="relative">
-            <span style={{ color: '#1E3A5F', fontSize: '12px' }}>Cart</span>
-          </Link>
-        </div>
+    <div className="min-h-screen" style={{ background: '#F5F1EA' }}>
+      {/* Navigation - Minimal */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center">
+        <span className="text-xs tracking-[0.2em] uppercase" style={{ color: '#5D6D7E' }}>Brand System</span>
+        <span className="text-xs tracking-[0.2em] uppercase" style={{ color: '#5D6D7E' }}>DOCUMENT V1.0 · SEPTEMBER 2026</span>
       </nav>
 
-      {/* Hero - Surreal Gradient */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Surreal background */}
-        <div className="absolute inset-0" style={{ 
-          background: 'linear-gradient(180deg, #87CEEB 0%, #FFB5C5 50%, #FFF8DC 100%)',
-        }} />
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 30% 70%, rgba(152,217,130,0.4) 0%, transparent 50%)',
-        }} />
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(201,160,220,0.4) 0%, transparent 50%)',
-        }} />
-        
-        {/* Content */}
-        <div className="relative z-10 text-center px-6 max-w-4xl">
-          <p className="text-xs uppercase tracking-[0.4em] mb-6" style={{ color: '#1E3A5F' }}>Discover</p>
-          <h1 className="font-display text-6xl md:text-8xl font-bold mb-6" style={{ color: '#1E3A5F', fontFamily: 'Syne, sans-serif', lineHeight: 0.95 }}>
-            Show me<br/>
-            <em style={{ fontStyle: 'italic', color: '#FF6B6B' }}>something new.</em>
-          </h1>
-          <p className="text-lg md:text-xl leading-relaxed mb-10 max-w-xl mx-auto" style={{ color: '#1E3A5F', opacity: 0.7 }}>
-            A portal into emerging fashion worlds that exist just beyond the mainstream radar.
+      {/* Main Hero - Card with Gradient */}
+      <section className="min-h-screen flex items-center justify-center px-6 py-20">
+        <div className="max-w-5xl w-full">
+          {/* Hero Card - Left aligned with gradient */}
+          <div className="relative aspect-[4/5] md:aspect-[16/10] rounded-[3rem] overflow-hidden" style={{ 
+            background: 'linear-gradient(135deg, #1E3A5F 0%, #8B9DC3 25%, #E8B4B8 50%, #F5C4A0 75%, #F5E6C8 100%)'
+          }}>
+            {/* Celestial Orb */}
+            <div className="absolute top-8 right-8 w-32 h-32 md:w-48 md:h-48 rounded-full" style={{ 
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(200,220,255,0.3), transparent)',
+              boxShadow: '0 0 60px rgba(255,255,255,0.4)'
+            }} />
+            
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col justify-between p-8 md:p-12">
+              <div>
+                {/* NEFER Wordmark - Bold gradient */}
+                <h1 className="font-display text-5xl md:text-8xl font-bold tracking-tight leading-none" style={{ 
+                  color: '#FFFFFF',
+                  background: 'linear-gradient(180deg, #FFFFFF 0%, #FFE4EC 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>
+                  NEFER
+                </h1>
+                
+                {/* Tagline */}
+                <p className="mt-6 text-xl md:text-3xl font-display" style={{ color: '#FFFFFF' }}>
+                  Show me something<br/>
+                  <em style={{ fontStyle: 'italic' }}>you don't know yet.</em>
+                </p>
+              </div>
+              
+              {/* Dutch description */}
+              <p className="text-sm md:text-base max-w-md" style={{ color: 'rgba(255,255,255,0.8)', fontFamily: 'Inter, sans-serif' }}>
+                Een visuele uitwerking van het merksysteem: wereld, kleur, typografie, grafische taal, motion en UI — klaar om mee te bouwen.
+              </p>
+            </div>
+          </div>
+          
+          {/* Navigation Links below card */}
+          <div className="mt-8 flex flex-wrap gap-6 md:gap-12">
+            <Link href="/marketplace" className="text-sm tracking-[0.15em] uppercase" style={{ color: '#1E3A5F' }}>
+              Shop →
+            </Link>
+            <Link href="/brands" className="text-sm tracking-[0.15em] uppercase" style={{ color: '#1E3A5F', opacity: 0.6 }}>
+              Brands
+            </Link>
+            <Link href="/collections" className="text-sm tracking-[0.15em] uppercase" style={{ color: '#1E3A5F', opacity: 0.6 }}>
+              Collections
+            </Link>
+            <Link href="/brand/onboarding" className="text-sm tracking-[0.15em] uppercase" style={{ color: '#D4AF37' }}>
+              For Sellers
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Color Palette Section */}
+      <section className="py-24 px-6" style={{ background: '#FFFFFF' }}>
+        <div className="max-w-6xl mx-auto">
+          <p className="text-xs tracking-[0.3em] uppercase mb-12" style={{ color: '#5D6D7E' }}>02 Colour</p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Colors from gradient */}
+            <div className="aspect-square rounded-2xl flex items-end p-4" style={{ background: '#1E3A5F' }}>
+              <span className="text-white text-sm">Deep Navy</span>
+            </div>
+            <div className="aspect-square rounded-2xl flex items-end p-4" style={{ background: '#8B9DC3' }}>
+              <span className="text-white text-sm">Periwinkle</span>
+            </div>
+            <div className="aspect-square rounded-2xl flex items-end p-4" style={{ background: '#E8B4B8' }}>
+              <span style={{ color: '#1E3A5F' }}>Soft Pink</span>
+            </div>
+            <div className="aspect-square rounded-2xl flex items-end p-4" style={{ background: '#F5C4A0' }}>
+              <span style={{ color: '#1E3A5F' }}>Peach</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 px-6" style={{ background: '#F5F1EA' }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-xs tracking-[0.3em] uppercase mb-4" style={{ color: '#D4AF37' }}>03 Get Started</p>
+          <h2 className="font-display text-4xl md:text-5xl mb-6" style={{ color: '#1E3A5F' }}>
+            Ready to explore?
+          </h2>
+          <p className="mb-8 text-lg" style={{ color: '#1E3A5F', opacity: 0.7 }}>
+            Discover emerging designers from around the world
           </p>
           <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <Link href="/marketplace" className="px-8 py-4 text-sm font-semibold tracking-[0.15em] uppercase" style={{ 
-              background: '#FFB5C5', 
-              color: '#1E3A5F',
-              boxShadow: '0 4px 20px rgba(255,181,197,0.4)'
-            }}>
-              Enter the Garden
+            <Link 
+              href="/marketplace" 
+              className="px-8 py-4 text-sm font-semibold uppercase tracking-widest rounded-full"
+              style={{ background: '#1E3A5F', color: '#FFFFFF' }}
+            >
+              Explore Now
             </Link>
-            <Link href="/brands" className="px-8 py-4 text-sm font-semibold tracking-[0.15em] uppercase" style={{ 
-              border: '2px solid #1E3A5F', 
-              color: '#1E3A5F' 
-            }}>
-              Explore Brands
+            <Link 
+              href="/brand/onboarding" 
+              className="px-8 py-4 text-sm font-semibold uppercase tracking-widest rounded-full border-2"
+              style={{ borderColor: '#1E3A5F', color: '#1E3A5F' }}
+            >
+              Join as Brand
             </Link>
           </div>
         </div>
-        
-        {/* Floating elements - surreal touch */}
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full opacity-30" style={{ background: '#98D982' }} />
-        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 rounded-full opacity-30" style={{ background: '#C9A0DC' }} />
-      </section>
-
-      {/* Featured - Color Cards */}
-      <section className="py-24 px-6" style={{ background: '#FDF6F0' }}>
-        <div className="max-w-7xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.3em] text-center mb-12" style={{ color: '#D4AF37' }}>Curated Selection</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1 - Blush Pink */}
-            <div className="group relative aspect-[3/4] rounded-3xl overflow-hidden" style={{ background: '#FFB5C5' }}>
-              <div className="absolute inset-0 flex flex-col justify-end p-8">
-                <p className="text-xs uppercase tracking-widest mb-2" style={{ color: '#1E3A5F', opacity: 0.6 }}>Explore</p>
-                <h3 className="font-display text-3xl" style={{ color: '#1E3A5F' }}>Emerging<br/>Designers</h3>
-                <Link href="/brands" className="mt-4 text-sm underline underline-offset-4" style={{ color: '#1E3A5F' }}>Discover →</Link>
-              </div>
-            </div>
-            
-            {/* Card 2 - Dream Blue */}
-            <div className="group relative aspect-[3/4] rounded-3xl overflow-hidden" style={{ background: '#87CEEB' }}>
-              <div className="absolute inset-0 flex flex-col justify-end p-8">
-                <p className="text-xs uppercase tracking-widest mb-2" style={{ color: '#1E3A5F', opacity: 0.6 }}>New</p>
-                <h3 className="font-display text-3xl" style={{ color: '#1E3A5F' }}>Spring<br/>Collection</h3>
-                <Link href="/marketplace" className="mt-4 text-sm underline underline-offset-4" style={{ color: '#1E3A5F' }}>Shop Now →</Link>
-              </div>
-            </div>
-            
-            {/* Card 3 - Botanica Green */}
-            <div className="group relative aspect-[3/4] rounded-3xl overflow-hidden" style={{ background: '#98D982' }}>
-              <div className="absolute inset-0 flex flex-col justify-end p-8">
-                <p className="text-xs uppercase tracking-widest mb-2" style={{ color: '#1E3A5F', opacity: 0.6 }}>Join</p>
-                <h3 className="font-display text-3xl" style={{ color: '#1E3A5F' }}>Become a<br/>Seller</h3>
-                <Link href="/brand/onboarding" className="mt-4 text-sm underline underline-offset-4" style={{ color: '#1E3A5F' }}>Apply →</Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Lavender Section */}
-      <section className="py-24 px-6" style={{ background: '#F5EEF8' }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs uppercase tracking-[0.3em] mb-4" style={{ color: '#C9A0DC' }}>The Experience</p>
-          <h2 className="font-display text-4xl md:text-5xl mb-6" style={{ color: '#1E3A5F' }}>
-            Not just shopping.<br/><em style={{ fontStyle: 'italic' }}>A journey.</em>
-          </h2>
-          <p className="text-lg" style={{ color: '#1E3A5F', opacity: 0.7 }}>
-            Every visit reveals something new. Not just new products, but new aesthetics, new narratives, new ways of seeing fashion.
-          </p>
-        </div>
-      </section>
-
-      {/* CTA - Coral */}
-      <section className="py-20 px-6 text-center" style={{ background: '#FF6B6B' }}>
-        <h2 className="font-display text-4xl mb-4" style={{ color: '#FFF8DC' }}>Ready to discover?</h2>
-        <p className="mb-8 text-lg" style={{ color: '#FFF8DC', opacity: 0.8 }}>Join thousands of style explorers</p>
-        <Link 
-          href="/signup" 
-          className="inline-block px-10 py-4 text-sm font-semibold uppercase tracking-widest"
-          style={{ background: '#FFF8DC', color: '#1E3A5F' }}
-        >
-          Get Started
-        </Link>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6" style={{ background: '#FDF6F0', borderTop: '1px solid rgba(212,175,55,0.1)' }}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <Link href="/" className="font-display text-xl font-bold tracking-[0.2em]" style={{ color: '#1E3A5F' }}>
-            NEFER
-          </Link>
-          <div className="flex gap-8">
-            <Link href="/legal/terms" className="text-xs" style={{ color: '#1E3A5F', opacity: 0.5 }}>Terms</Link>
-            <Link href="/legal/privacy" className="text-xs" style={{ color: '#1E3A5F', opacity: 0.5 }}>Privacy</Link>
-            <Link href="/help" className="text-xs" style={{ color: '#1E3A5F', opacity: 0.5 }}>Help</Link>
+      <footer className="py-8 px-6" style={{ background: '#1E3A5F' }}>
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <span className="font-display text-xl font-bold tracking-[0.2em]" style={{ color: '#FFFFFF' }}>NEFER</span>
+          <div className="flex gap-6">
+            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>© 2026</span>
           </div>
-          <p className="text-xs" style={{ color: '#1E3A5F', opacity: 0.3 }}>© 2026 NEFER</p>
         </div>
       </footer>
     </div>
