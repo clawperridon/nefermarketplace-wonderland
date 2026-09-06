@@ -1,0 +1,206 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { approveProduct, rejectProduct } from '@/app/actions/products'
+
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: { filter?: string }
+}) {
+  const supabase = await createClient()
+  
+  // Get current user
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (!session) {
+    redirect('/login')
+  }
+  
+  // Check if admin
+  const { data: user } = await supabase
+    .from('User')
+    .select('role')
+    .eq('id', session.user.id)
+    .single()
+  
+  if (user?.role !== 'ADMIN') {
+    redirect('/')
+  }
+
+  const filter = searchParams.filter || 'pending'
+  
+  let query = supabase
+    .from('Product')
+    .select('*, brand:BrandProfile(id, brandName, logoUrl, user:User(email))')
+    .eq('isActive', true)
+  
+  if (filter === 'pending') {
+    query = query.eq('status', 'PENDING')
+  } else if (filter === 'approved') {
+    query = query.eq('status', 'APPROVED')
+  } else if (filter === 'rejected') {
+    query = query.eq('status', 'REJECTED')
+  }
+  
+  const { data: products } = await query.order('createdAt', { ascending: false })
+
+  return (
+    <div className="min-h-screen" style={{ background: '#F8F5ED' }}>
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold" style={{ color: '#1A2B3C' }}>
+            Product Management
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Review and manage product submissions
+          </p>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex gap-4 mb-8">
+          <a
+            href="/admin/products?filter=pending"
+            className={`px-4 py-2 rounded-lg font-medium ${
+              filter === 'pending'
+                ? 'bg-yellow-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Pending ({products?.filter((p: any) => p.status === 'PENDING').length || 0})
+          </a>
+          <a
+            href="/admin/products?filter=approved"
+            className={`px-4 py-2 rounded-lg font-medium ${
+              filter === 'approved'
+                ? 'bg-green-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Approved
+          </a>
+          <a
+            href="/admin/products?filter=rejected"
+            className={`px-4 py-2 rounded-lg font-medium ${
+              filter === 'rejected'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Rejected
+          </a>
+          <a
+            href="/admin/products?filter=all"
+            className={`px-4 py-2 rounded-lg font-medium ${
+              filter === 'all'
+                ? 'bg-black text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            All
+          </a>
+        </div>
+
+        {/* Products Table */}
+        {products && products.length > 0 ? (
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Product</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Brand</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Category</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Price</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Date</th>
+                  <th className="px-6 py-4 text-right text-sm font-medium text-gray-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {products.map((product: any) => (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {product.images?.[0] ? (
+                            <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                              No img
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{product.title}</p>
+                          <p className="text-sm text-gray-500 truncate max-w-xs">
+                            {product.description || 'No description'}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-gray-900">{product.brand?.brandName}</p>
+                      <p className="text-sm text-gray-500">{product.brand?.user?.email}</p>
+                    </td>
+                    <td className="px-6 py-4 text-gray-600">
+                      {product.category || '-'}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      €{product.price?.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        product.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                        product.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {product.status || 'PENDING'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-500 text-sm">
+                      {new Date(product.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {product.status === 'PENDING' && (
+                        <div className="flex gap-2 justify-end">
+                          <form action={async () => {
+                            'use server'
+                            await approveProduct(product.id)
+                          }}>
+                            <button
+                              type="submit"
+                              className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600"
+                            >
+                              Approve
+                            </button>
+                          </form>
+                          <form action={async () => {
+                            'use server'
+                            await rejectProduct(product.id)
+                          }}>
+                            <button
+                              type="submit"
+                              className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+                            >
+                              Reject
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl p-12 text-center">
+            <p className="text-gray-500">
+              {filter === 'pending' ? 'No pending products to review' : 'No products found'}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

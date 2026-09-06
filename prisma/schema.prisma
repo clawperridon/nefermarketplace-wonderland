@@ -1,0 +1,789 @@
+// NEFER Marketplace Schema
+// Multi-brand fashion marketplace
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?   
+  firstName     String?
+  lastName      String?
+  avatarUrl     String?
+  role          UserRole  @default(CUSTOMER)
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  customerProfile  CustomerProfile?
+  brandMembership BrandMember[]
+  orders         Order[]
+  savedProducts  SavedProduct[]
+  savedBrands    SavedBrand[]
+  events         CustomerEvent[]
+  reviews        Review[]
+  userPoints     UserPoints?
+}
+
+enum UserRole {
+  CUSTOMER
+  BRAND
+  ADMIN
+}
+
+// Customer profile
+model CustomerProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  preferredCategories String[]
+  preferredColors    String[]
+  preferredPriceRange Json? 
+  sizeProfile       Json?   
+  
+  addresses        Address[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// Address
+model Address {
+  id              String      @id @default(cuid())
+  customerId      String
+  customer        CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  type            AddressType @default(SHIPPING)
+  firstName       String
+  lastName        String
+  company         String?
+  street          String
+  houseNumber     String
+  postalCode      String
+  city            String
+  country         String      @default("NL")
+  phone           String?
+  isDefault      Boolean     @default(false)
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+}
+
+// ============================================
+// BRANDS
+// ============================================
+
+model Brand {
+  id              String      @id @default(cuid())
+  
+  // Identity
+  name            String
+  slug            String      @unique
+  description     String?     @db.Text
+  story           String?     @db.Text
+  
+  // Visual
+  logoUrl         String?
+  heroImageUrl    String?
+  coverImageUrl   String?
+  
+  // Contact
+  website         String?
+  email           String?
+  instagram       String?
+  tiktok          String?
+  
+  // Location
+  country         String?
+  city            String?
+  
+  // Status
+  status          BrandStatus @default(PENDING)
+  isFeatured      Boolean     @default(false)
+  
+  // Commerce
+  commissionRate   Float       @default(0.15)
+  payoutSchedule  PayoutSchedule @default(MONTHLY)
+  
+  // Legacy link (temporary)
+  userId          String?
+  
+  // Relations
+  members         BrandMember[]
+  products        Product[]
+  collections     BrandCollection[]
+  fulfillments    Fulfillment[]
+  savedByUsers    SavedBrand[]
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum BrandStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+  ARCHIVED
+}
+
+enum PayoutSchedule {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+// Brand members
+model BrandMember {
+  id          String    @id @default(cuid())
+  
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  brandId     String
+  brand       Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  
+  role        BrandRole @default(EDITOR)
+  status      MemberStatus @default(INVITED)
+  
+  invitedAt   DateTime?
+  acceptedAt  DateTime?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([userId, brandId])
+}
+
+enum BrandRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum MemberStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+}
+
+// ============================================
+// PRODUCTS
+// ============================================
+
+model Product {
+  id              String        @id @default(cuid())
+  
+  brandId         String
+  brand           Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  
+  // Core info
+  name            String
+  slug            String
+  description     String?       @db.Text
+  materials       String?       
+  
+  // Pricing
+  price           Decimal       @db.Decimal(10, 2)
+  compareAtPrice  Decimal?      @db.Decimal(10, 2)
+  
+  // Categorization
+  categoryId      String?
+  category        Category?     @relation(fields: [categoryId], references: [id])
+  tags            ProductTag[]
+  
+  // Status
+  status          ProductStatus @default(DRAFT)
+  isFeatured      Boolean       @default(false)
+  isActive        Boolean       @default(true)
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  
+  // Relations
+  images          ProductImage[]
+  variants        ProductVariant[]
+  collections     CollectionProduct[]
+  savedByUsers   SavedProduct[]
+  analytics       ProductAnalytics[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([brandId, slug])
+  @@index([brandId])
+  @@index([status])
+  @@index([categoryId])
+}
+
+enum ProductStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+// Product images
+model ProductImage {
+  id          String    @id @default(cuid())
+  
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  url         String
+  altText     String?
+  position    Int       @default(0)
+  
+  createdAt   DateTime  @default(now())
+}
+
+// Product variants
+model ProductVariant {
+  id          String    @id @default(cuid())
+  
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  sku         String?
+  size        String?
+  color       String?
+  weight      Decimal?  @db.Decimal(8, 3)
+  price       Decimal?  @db.Decimal(10, 2)
+  isActive    Boolean   @default(true)
+  
+  inventory   Inventory?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([productId, size, color])
+}
+
+// Inventory
+model Inventory {
+  id            String          @id @default(cuid())
+  
+  variantId     String          @unique
+  variant       ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  
+  quantity      Int             @default(0)
+  reservedQty   Int             @default(0)
+  lowStockThreshold Int        @default(3)
+  
+  lastRestocked  DateTime?
+  lastSold      DateTime?
+  
+  updatedAt     DateTime        @updatedAt
+}
+
+// Categories
+model Category {
+  id          String    @id @default(cuid())
+  
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  parentId    String?
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  
+  products    Product[]
+  
+  position    Int       @default(0)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Tags
+model Tag {
+  id        String         @id @default(cuid())
+  
+  name      String         @unique
+  slug      String         @unique
+  type      TagType        @default(GENERAL)
+  
+  products  ProductTag[]
+  
+  createdAt DateTime       @default(now())
+}
+
+enum TagType {
+  GENERAL
+  TREND
+  MATERIAL
+  OCCASION
+  STYLE
+}
+
+model ProductTag {
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([productId, tagId])
+}
+
+// Product analytics (lightweight)
+model ProductAnalytics {
+  id          String    @id @default(cuid())
+  
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  eventType   String
+  count       Int       @default(1)
+  date        DateTime  @default(now())
+  
+  @@index([productId])
+  @@index([date])
+}
+
+// ============================================
+// ORDERS
+// ============================================
+
+model Order {
+  id              String        @id @default(cuid())
+  
+  orderNumber     String        @unique
+  
+  customerId      String
+  customer        User          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  status          OrderStatus   @default(PENDING)
+  
+  subtotal        Decimal       @db.Decimal(10, 2)
+  shippingCost    Decimal       @db.Decimal(10, 2) @default(0)
+  taxAmount       Decimal       @db.Decimal(10, 2) @default(0)
+  discountAmount  Decimal       @db.Decimal(10, 2) @default(0)
+  total           Decimal       @db.Decimal(10, 2)
+  
+  currency        String        @default("EUR")
+  
+  shippingAddress Json?
+  shippingMethod  String?
+  
+  customerNote    String?
+  internalNote   String?
+  
+  items           OrderItem[]
+  fulfillments    Fulfillment[]
+  payment         Payment?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([customerId])
+  @@index([status])
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model OrderItem {
+  id              String    @id @default(cuid())
+  
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId       String
+  productName     String
+  productImage    String?
+  
+  variantId       String?
+  variantInfo     Json?
+  
+  brandId         String
+  brandName       String
+  
+  quantity        Int
+  unitPrice       Decimal   @db.Decimal(10, 2)
+  totalPrice      Decimal   @db.Decimal(10, 2)
+  
+  fulfillmentStatus FulfillmentStatus @default(PENDING)
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([orderId])
+  @@index([productId])
+  @@index([brandId])
+}
+
+enum FulfillmentStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  RETURNED
+}
+
+model Fulfillment {
+  id              String            @id @default(cuid())
+  
+  orderId         String
+  order           Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  brandId         String
+  brand           Brand             @relation(fields: [brandId], references: [id])
+  
+  status          FulfillmentStatus @default(PENDING)
+  
+  carrier         String?
+  trackingNumber  String?
+  trackingUrl     String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  
+  shippingAddress Json
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@unique([orderId, brandId])
+  @@index([orderId])
+  @@index([brandId])
+}
+
+model Payment {
+  id                  String        @id @default(cuid())
+  
+  orderId             String        @unique
+  order               Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  stripePaymentIntentId String?   @unique
+  stripeChargeId      String?
+  
+  amount             Decimal       @db.Decimal(10, 2)
+  currency           String        @default("EUR")
+  
+  status             PaymentStatus @default(PENDING)
+  
+  refundedAmount     Decimal       @db.Decimal(10, 2) @default(0)
+  refundReason       String?
+  
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+// ============================================
+// COLLECTIONS
+// ============================================
+
+model Collection {
+  id              String    @id @default(cuid())
+  
+  name            String
+  slug            String    @unique
+  description     String?   @db.Text
+  
+  coverImageUrl   String?
+  featuredImageUrl String?
+  
+  status          CollectionStatus @default(DRAFT)
+  isFeatured     Boolean  @default(false)
+  
+  type            CollectionType @default(MANUAL)
+  
+  rules           Json?
+  
+  products        CollectionProduct[]
+  
+  position        Int      @default(0)
+  
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum CollectionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CollectionType {
+  MANUAL
+  AUTOMATED
+  TRENDING
+  NEW_ARRIVALS
+}
+
+model CollectionProduct {
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  
+  productId    String
+  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  position     Int       @default(0)
+  
+  @@id([collectionId, productId])
+}
+
+model BrandCollection {
+  id        String   @id @default(cuid())
+  
+  brandId   String
+  brand     Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  
+  name      String
+  slug      String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// SAVED ITEMS
+// ============================================
+
+model SavedProduct {
+  id          String    @id @default(cuid())
+  
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  notes       String?
+  
+  createdAt   DateTime  @default(now())
+  
+  @@unique([userId, productId])
+}
+
+model SavedBrand {
+  id          String    @id @default(cuid())
+  
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  brandId     String
+  brand       Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime  @default(now())
+  
+  @@unique([userId, brandId])
+}
+
+// ============================================
+// EVENTS
+// ============================================
+
+model CustomerEvent {
+  id          String      @id @default(cuid())
+  
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  eventType   String
+  
+  productId   String?
+  brandId     String?
+  categoryId  String?
+  collectionId String?
+  
+  metadata    Json?
+  sessionId   String?
+  referrer    String?
+  userAgent   String?
+  
+  createdAt   DateTime   @default(now())
+  
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+// ============================================
+// CMS
+// ============================================
+
+model ContentBlock {
+  id          String    @id @default(cuid())
+  
+  page        String
+  section     String
+  
+  type        String
+  
+  content     Json
+  
+  position    Int       @default(0)
+  isActive    Boolean   @default(true)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([page, section, position])
+}
+
+model Banner {
+  id              String  @id @default(cuid())
+  title           String
+  subtitle        String?
+  imageUrl        String
+  linkUrl         String?
+  linkText        String?
+  position        Int      @default(1)
+  backgroundColor String   @default("#1A2B3C")
+  textColor       String   @default("#FFFFFF")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// LOYALTY
+// ============================================
+
+model UserPoints {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  points          Int      @default(0)
+  totalPointsEarned Int    @default(0)
+  totalPointsSpent Int     @default(0)
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// ADDITIONAL MODELS
+// ============================================
+
+model Drop {
+  id          String    @id @default(cuid())
+  brandId     String
+  title       String
+  description String?
+  imageUrl    String?
+  launchDate  DateTime
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model StoryOfWeek {
+  id          String   @id @default(cuid())
+  title       String
+  brandId     String?
+  brandName   String?
+  imageUrl    String?
+  description String?
+  isActive    Boolean  @default(true)
+  weekStart   DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  rating      Int
+  title       String?
+  comment     String?
+  isApproved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DiscountCode {
+  id              String    @id @default(cuid())
+  code            String
+  brandId         String
+  discountType    String
+  discountValue   Float
+  minOrderAmount  Float     @default(0)
+  usageLimit      Int?
+  usedCount       Int       @default(0)
+  expiresAt       DateTime?
+  description     String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model WishlistAlert {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String
+  size        String?
+  color       String?
+  isActive    Boolean  @default(true)
+  notifiedAt  DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model Message {
+  id              String   @id @default(cuid())
+  senderId        String
+  recipientId     String?
+  recipientBrandId String?
+  productId       String?
+  subject         String?
+  message         String
+  isRead          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
+
+model NewsletterSubscriber {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model AdminSettings {
+  id                    String  @id @default(cuid())
+  pointsPerEuro         Int     @default(1)
+  pointsRedemptionRate  Float   @default(1.0)
+  minPointsToRedeem     Int     @default(100)
+  welcomePoints         Int     @default(0)
+  updatedAt             DateTime @updatedAt
+}
