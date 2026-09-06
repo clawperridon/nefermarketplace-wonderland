@@ -1,30 +1,30 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Manrope, JetBrains_Mono } from "next/font/google";
+import { Syne, Inter, Playfair_Display } from "next/font/google";
 import { CartProvider } from "@/lib/cart";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  weight: ["400", "500"],
   style: ["normal", "italic"],
 });
 
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
-
 export const metadata: Metadata = {
-  title: "Nefer — a fashion mirage",
-  description: "An editorial fashion marketplace for independent makers.",
+  title: "NEFER — a fashion mirage",
+  description: "Discover emerging fashion from around the world.",
 };
 
 export default function RootLayout({
@@ -35,9 +35,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
+      className={`${syne.variable} ${inter.variable} ${playfair.variable}`}
     >
-      <body>
+      <body className="font-sans">
         <CartProvider>{children}</CartProvider>
       </body>
     </html>
